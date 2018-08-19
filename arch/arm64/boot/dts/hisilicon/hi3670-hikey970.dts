@@ -437,6 +437,16 @@
 	status = "okay";
 };
 
+&uart3 {
+	/* On Low speed expansion */
+	label = "LS-UART0";
+	status = "okay";
+};
+
+&uart4 {
+	status = "okay";
+};
+
 &uart6 {
 	/* On Low speed expansion header */
 	label = "LS-UART1";
