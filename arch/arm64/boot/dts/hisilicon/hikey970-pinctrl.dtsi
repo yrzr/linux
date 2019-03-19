@@ -347,6 +347,12 @@
 			pinctrl-single,function-mask = <0x7>;
 			/* pin base, nr pins & gpio function */
 			pinctrl-single,gpio-range = <&range 0 46 0>;
+
+			pcie_clkreq_pmx_func: pcie_clkreq_pmx_func {
+				pinctrl-single,pins = <
+					0x084 MUX_M1 /* PCIE0_CLKREQ_N */
+				>;
+			};
 		};
 
 		pmx16: pinmux@fff11800 {
@@ -354,6 +360,27 @@
 			reg = <0x0 0xfff11800 0x0 0x73c>;
 			#pinctrl-cells = <1>;
 			pinctrl-single,register-width = <0x20>;
+
+			pcie_clkreq_cfg_func: pcie_clkreq_cfg_func {
+				pinctrl-single,pins = <
+					0x0b0 0x0
+				>;
+				pinctrl-single,bias-pulldown = <
+					PULL_DIS
+					PULL_DOWN
+					PULL_DIS
+					PULL_DOWN
+				>;
+				pinctrl-single,bias-pullup = <
+					PULL_DIS
+					PULL_UP
+					PULL_DIS
+					PULL_UP
+				>;
+				pinctrl-single,drive-strength = <
+					DRIVE7_06MA DRIVE6_MASK
+				>;
+			};
 		};
 	};
 };
