@@ -72,8 +72,6 @@
 #include <linux/oom.h>
 #include <linux/numa.h>
 
-#include <trace/events/kmem.h>
-
 #include <asm/io.h>
 #include <asm/mmu_context.h>
 #include <asm/pgalloc.h>
@@ -153,10 +151,6 @@ static int __init init_zero_pfn(void)
 }
 core_initcall(init_zero_pfn);
 
-void mm_trace_rss_stat(struct mm_struct *mm, int member, long count)
-{
-	trace_rss_stat(mm, member, count);
-}
 
 #if defined(SPLIT_RSS_COUNTING)
 

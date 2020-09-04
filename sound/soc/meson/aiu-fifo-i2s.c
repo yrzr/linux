@@ -118,7 +118,32 @@ static int aiu_fifo_i2s_hw_params(struct snd_pcm_substream *substream,
 	snd_soc_component_update_bits(component, AIU_MEM_I2S_MASKS,
 				      AIU_MEM_I2S_MASKS_IRQ_BLOCK, val);
 
+	snd_soc_component_write(component, AIU_RST_SOFT,
+			AIU_RST_SOFT_I2S_FAST);
+	snd_soc_component_read(component, AIU_I2S_SYNC, &val);
+
 	return 0;
+}
+
+static const unsigned int channels_2_8[] = {
+	2, 8
+};
+
+static const struct snd_pcm_hw_constraint_list hw_constraints_2_8_channels = {
+	.count = ARRAY_SIZE(channels_2_8),
+	.list = channels_2_8,
+	.mask = 0,
+};
+
+static int aiu_fifo_i2s_startup(struct snd_pcm_substream *substream,
+				struct snd_soc_dai *dai)
+{
+	/* Make sure either 2ch or 8ch is selected */
+	snd_pcm_hw_constraint_list(substream->runtime, 0,
+				   SNDRV_PCM_HW_PARAM_CHANNELS,
+				   &hw_constraints_2_8_channels);
+
+	return aiu_fifo_startup(substream, dai);
 }
 
 const struct snd_soc_dai_ops aiu_fifo_i2s_dai_ops = {
@@ -126,7 +151,7 @@ const struct snd_soc_dai_ops aiu_fifo_i2s_dai_ops = {
 	.prepare	= aiu_fifo_i2s_prepare,
 	.hw_params	= aiu_fifo_i2s_hw_params,
 	.hw_free	= aiu_fifo_hw_free,
-	.startup	= aiu_fifo_startup,
+	.startup	= aiu_fifo_i2s_startup,
 	.shutdown	= aiu_fifo_shutdown,
 };
 
