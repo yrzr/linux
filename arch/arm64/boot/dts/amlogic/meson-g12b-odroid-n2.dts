@@ -31,6 +31,7 @@
 		i2c1 = &i2c3;
 		serial0 = &uart_AO;
 		serial1 = &uart_A;
+		rtc1 = &vrtc;
 	};
 
 	dioo2133: audio-amplifier-0 {
@@ -462,7 +463,7 @@
 
 		reset-assert-us = <10000>;
 		reset-deassert-us = <30000>;
-		reset-gpios = <&gpio GPIOZ_15 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>;
+		/* reset-gpios = <&gpio GPIOZ_15 (GPIO_ACTIVE_LOW | GPIO_OPEN_DRAIN)>; */
 
 		interrupt-parent = <&gpio_intc>;
 		/* MAC_INTR on GPIOZ_14 */
@@ -591,6 +592,11 @@
 
 	/* default 100k */
 	clock-frequency = <100000>;
+	
+	rtc@51 {
+		compatible = "nxp,pcf8563";
+		reg = <0x51>;
+	};
 };
 
 &ir {
