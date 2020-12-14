@@ -11,8 +11,8 @@
 #include "exynos5422-odroid-core.dtsi"
 
 / {
-	model = "Hardkernel Odroid HC1";
-	compatible = "hardkernel,odroid-hc1", "samsung,exynos5800", \
+	model = "Hardkernel ODROID HC1";
+	compatible = "hardkernel,odroid-hc1", "samsung,exynos5800",
 		     "samsung,exynos5";
 
 	pwmleds {

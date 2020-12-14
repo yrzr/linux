@@ -314,7 +314,7 @@ static void *__alloc_remap_buffer(struct device *dev, size_t size, gfp_t gfp,
 				 pgprot_t prot, struct page **ret_page,
 				 const void *caller, bool want_vaddr);
 
-#define DEFAULT_DMA_COHERENT_POOL_SIZE	SZ_256K
+#define DEFAULT_DMA_COHERENT_POOL_SIZE	SZ_2M
 static struct gen_pool *atomic_pool __ro_after_init;
 
 static size_t atomic_pool_size __initdata = DEFAULT_DMA_COHERENT_POOL_SIZE;
@@ -567,7 +567,8 @@ static inline pgprot_t __get_dma_pgprot(unsigned long attrs, pgprot_t prot)
 {
 	prot = (attrs & DMA_ATTR_WRITE_COMBINE) ?
 			pgprot_writecombine(prot) :
-			pgprot_dmacoherent(prot);
+		(attrs & DMA_ATTR_NON_CONSISTENT) ?
+			prot : pgprot_dmacoherent(prot);
 	return prot;
 }
 

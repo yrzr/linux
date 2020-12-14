@@ -651,7 +651,7 @@ static const struct snd_kcontrol_new max98090_snd_controls[] = {
 
 	SOC_DOUBLE_R_TLV("Headphone Volume", M98090_REG_LEFT_HP_VOLUME,
 		M98090_REG_RIGHT_HP_VOLUME, M98090_HPVOLL_SHIFT,
-		M98090_HPVOLL_NUM - 1, 0, max98090_hp_tlv),
+		M98090_HPVOLL_NUM - 1 + 24, 0, max98090_hp_tlv),
 
 	SOC_DOUBLE_R_RANGE_TLV("Speaker Volume",
 		M98090_REG_LEFT_SPK_VOLUME, M98090_REG_RIGHT_SPK_VOLUME,
