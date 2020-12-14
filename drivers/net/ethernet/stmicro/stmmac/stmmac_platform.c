@@ -21,6 +21,40 @@
 
 #ifdef CONFIG_OF
 
+#if defined (CONFIG_DWMAC_MESON) || defined (CONFIG_DWMAC_ROCKCHIP)
+static u8 DEFMAC[] = {0, 0, 0, 0, 0, 0};
+static unsigned int g_mac_addr_setup;
+static unsigned char chartonum(char c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'A' && c <= 'F')
+		return (c - 'A') + 10;
+	if (c >= 'a' && c <= 'f')
+		return (c - 'a') + 10;
+
+	return 0;
+}
+
+static int __init mac_addr_set(char *line)
+{
+	unsigned char mac[6];
+	int i = 0;
+
+	for (i = 0; i < 6 && line[0] != '\0' && line[1] != '\0'; i++) {
+		mac[i] = chartonum(line[0]) << 4 | chartonum(line[1]);
+		line += 3;
+	}
+	memcpy(DEFMAC, mac, 6);
+	pr_info("uboot setup mac-addr: %02x:%02x:%02x:%02x:%02x:%02x\n",
+	DEFMAC[0], DEFMAC[1], DEFMAC[2], DEFMAC[3], DEFMAC[4], DEFMAC[5]);
+	g_mac_addr_setup++;
+	return 0;
+}
+__setup("mac=", mac_addr_set);
+#endif
+
+
 /**
  * dwmac1000_validate_mcast_bins - validates the number of Multicast filter bins
  * @dev: struct device of the platform device
@@ -404,7 +438,15 @@ stmmac_probe_config_dt(struct platform_device *pdev, const char **mac)
 	if (!plat)
 		return ERR_PTR(-ENOMEM);
 
+#if defined (CONFIG_DWMAC_MESON) || defined (CONFIG_DWMAC_ROCKCHIP)
+	if (g_mac_addr_setup)   /*so uboot mac= is first priority.*/
+		*mac = DEFMAC;
+	else
+		*mac = of_get_mac_address(np);
+#else
 	*mac = of_get_mac_address(np);
+#endif
+
 	if (IS_ERR(*mac)) {
 		if (PTR_ERR(*mac) == -EPROBE_DEFER)
 			return ERR_CAST(*mac);
