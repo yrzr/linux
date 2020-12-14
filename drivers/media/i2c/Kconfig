@@ -387,6 +387,7 @@ config VIDEO_TC358743_CEC
 config VIDEO_TVP514X
 	tristate "Texas Instruments TVP514x video decoder"
 	depends on VIDEO_V4L2 && I2C
+	select REGMAP_I2C
 	select V4L2_FWNODE
 	help
 	  This is a Video4Linux2 sensor driver for the TI TVP5146/47
