@@ -13,7 +13,7 @@
 / {
 	sound: sound {
 		compatible = "samsung,odroid-xu3-audio";
-		model = "Odroid-XU3";
+		model = "ODROID-XU3";
 
 		samsung,audio-widgets =
 			"Headphone", "Headphone Jack",

@@ -13,8 +13,8 @@
 #include "exynos5422-odroidxu3-common.dtsi"
 
 / {
-	model = "Hardkernel Odroid XU4";
-	compatible = "hardkernel,odroid-xu4", "samsung,exynos5800", \
+	model = "Hardkernel ODROID XU4";
+	compatible = "hardkernel,odroid-xu4", "samsung,exynos5800",
 		     "samsung,exynos5";
 
 	pwmleds {
@@ -31,7 +31,7 @@
 
 	sound: sound {
 		compatible = "samsung,odroid-xu3-audio";
-		model = "Odroid-XU4";
+		model = "ODROID-XU4";
 
 		samsung,audio-routing = "I2S Playback", "Mixer DAI TX";
 
@@ -89,4 +89,17 @@
 
 &usbdrd_dwc3_1 {
 	dr_mode = "host";
+};
+
+/* i2c@12C70000 */
+&i2c_1 {
+	status = "okay";
+	samsung,i2c-max-bus-freq = <400000>;
+};
+
+/* i2c@12cb0000 */
+&hsi2c_5 {
+	status = "okay";
+	samsung,hs-mode;
+	clock-frequency = <400000>;
 };

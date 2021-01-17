@@ -13,8 +13,9 @@
 #include "exynos54xx-odroidxu-leds.dtsi"
 
 / {
-	model = "Hardkernel Odroid XU3";
-	compatible = "hardkernel,odroid-xu3", "samsung,exynos5800", "samsung,exynos5";
+	model = "Hardkernel ODROID XU3";
+	compatible = "hardkernel,odroid-xu3", "samsung,exynos5800",
+		"samsung,exynos5";
 };
 
 &i2c_0 {

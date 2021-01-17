@@ -14,8 +14,9 @@
 #include "exynos54xx-odroidxu-leds.dtsi"
 
 / {
-	model = "Hardkernel Odroid XU3 Lite";
-	compatible = "hardkernel,odroid-xu3-lite", "samsung,exynos5800", "samsung,exynos5";
+	model = "Hardkernel ODROID XU3 Lite";
+	compatible = "hardkernel,odroid-xu3-lite", "samsung,exynos5800",
+		"samsung,exynos5";
 };
 
 &arm_a7_pmu {
@@ -86,6 +87,10 @@
 			 <&cpu5 3 12>,
 			 <&cpu6 3 12>,
 			 <&cpu7 3 12>;
+};
+
+&chipid {
+	samsung,asv-bin = <2>;
 };
 
 &pwm {
