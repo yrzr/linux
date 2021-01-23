@@ -15,6 +15,7 @@
 		ethernet0 = &ethmac;
 		i2c0 = &i2c2;
 		i2c1 = &i2c3;
+		rtc1 = &vrtc;
 	};
 
 	dioo2133: audio-amplifier-0 {
@@ -575,6 +576,11 @@
 
 	/* default 100k */
 	clock-frequency = <100000>;
+
+	rtc@51 {
+		compatible = "nxp,pcf8563";
+		reg = <0x51>;
+	};
 };
 
 &ir {
