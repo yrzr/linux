@@ -390,10 +390,6 @@
 
 &dwmmc1 {
 	bus-width = <0x4>;
-	sd-uhs-sdr12;
-	sd-uhs-sdr25;
-	sd-uhs-sdr50;
-	sd-uhs-sdr104;
 	cap-sd-highspeed;
 	disable-wp;
 	cd-inverted;
