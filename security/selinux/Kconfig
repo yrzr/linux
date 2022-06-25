@@ -26,6 +26,7 @@ config SECURITY_SELINUX_BOOTPARAM
 config SECURITY_SELINUX_DISABLE
 	bool "NSA SELinux runtime disable"
 	depends on SECURITY_SELINUX
+	depends on !GENTOO_KERNEL_SELF_PROTECTION
 	select SECURITY_WRITABLE_HOOKS
 	default n
 	help
