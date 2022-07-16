@@ -11,6 +11,7 @@
 #include <dt-bindings/gpio/gpio.h>
 
 #include "hi3670.dtsi"
+#include "hi3670_ipc.dtsi"
 #include "hikey970-pinctrl.dtsi"
 #include "hikey970-pmic.dtsi"
 
@@ -38,6 +39,13 @@
 		device_type = "memory";
 		/* expect bootloader to fill in this region */
 		reg = <0x0 0x0 0x0 0x0>;
+	};
+
+	pclk: apb_pclk {
+			compatible = "fixed-clock";
+			#clock-cells = <0>;
+			clock-frequency = <20000000>;
+			clock-output-names = "apb_pclk";
 	};
 
 	wlan_en: wlan-en-1-8v {
@@ -446,6 +454,16 @@
 	/* On Low speed expansion header */
 	label = "LS-UART0";
 	status = "okay";
+};
+
+&uart4 {
+	status = "okay";
+
+	bluetooth {
+		compatible = "ti,wl1837-st";
+		enable-gpios = <&gpio6 6 GPIO_ACTIVE_HIGH>; /* gpio_054 */
+		max-speed = <921600>;
+	};
 };
 
 &uart6 {
