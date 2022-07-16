@@ -493,7 +493,7 @@
 		};
 
 		tsensor: tsensor {
-			compatible = "hisilicon,kirin970-tsensor";
+			compatible = "hisilicon,hi3670-tsensor";
 			reg = <0x0 0xfff30000 0x0 0x1000>;
 			interrupts = <GIC_SPI 145 IRQ_TYPE_LEVEL_HIGH>;
 			#thermal-sensor-cells = <1>;
@@ -926,6 +926,7 @@
 			msi-controller;
 			reg = <0x0 0xf5100000 0x0 0x100000>;
 		};
+
 		pcie_phy: pcie-phy@fc000000 {
 			compatible = "hisilicon,hi970-pcie-phy";
 			reg = <0x0 0xfc000000 0x0 0x80000>;
