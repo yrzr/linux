@@ -61,6 +61,15 @@
 			device_type = "cpu";
 			reg = <0x0 0x0>;
 			enable-method = "psci";
+			next-level-cache = <&A53_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_0>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER0>;
+			operating-points-v2 = <&cluster0_opp>;
+			cooling-min-level = <6>;
+			cooling-max-level = <0>;
+			#cooling-cells = <2>; /* min followed by max */
+			dynamic-power-coefficient = <88>;
+			sched-energy-costs = <&CPU_COST_A53 &CLUSTER_COST_A53>;
 		};
 
 		cpu1: cpu@1 {
@@ -68,6 +77,11 @@
 			device_type = "cpu";
 			reg = <0x0 0x1>;
 			enable-method = "psci";
+			next-level-cache = <&A53_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_0>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER0>;
+			operating-points-v2 = <&cluster0_opp>;
+			sched-energy-costs = <&CPU_COST_A53 &CLUSTER_COST_A53>;
 		};
 
 		cpu2: cpu@2 {
@@ -75,6 +89,11 @@
 			device_type = "cpu";
 			reg = <0x0 0x2>;
 			enable-method = "psci";
+			next-level-cache = <&A53_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_0>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER0>;
+			operating-points-v2 = <&cluster0_opp>;
+			sched-energy-costs = <&CPU_COST_A53 &CLUSTER_COST_A53>;
 		};
 
 		cpu3: cpu@3 {
@@ -82,6 +101,11 @@
 			device_type = "cpu";
 			reg = <0x0 0x3>;
 			enable-method = "psci";
+			next-level-cache = <&A53_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_0>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER0>;
+			operating-points-v2 = <&cluster0_opp>;
+			sched-energy-costs = <&CPU_COST_A53 &CLUSTER_COST_A53>;
 		};
 
 		cpu4: cpu@100 {
@@ -89,6 +113,15 @@
 			device_type = "cpu";
 			reg = <0x0 0x100>;
 			enable-method = "psci";
+			next-level-cache = <&A73_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_1>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER1>;
+			operating-points-v2 = <&cluster1_opp>;
+			cooling-min-level = <8>;
+			cooling-max-level = <0>;
+			#cooling-cells = <2>; /* min followed by max */
+			dynamic-power-coefficient = <342>;
+			sched-energy-costs = <&CPU_COST_A73 &CLUSTER_COST_A73>;
 		};
 
 		cpu5: cpu@101 {
@@ -96,6 +129,11 @@
 			device_type = "cpu";
 			reg = <0x0 0x101>;
 			enable-method = "psci";
+			next-level-cache = <&A73_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_1>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER1>;
+			operating-points-v2 = <&cluster1_opp>;
+			sched-energy-costs = <&CPU_COST_A73 &CLUSTER_COST_A73>;
 		};
 
 		cpu6: cpu@102 {
@@ -103,6 +141,11 @@
 			device_type = "cpu";
 			reg = <0x0 0x102>;
 			enable-method = "psci";
+			next-level-cache = <&A73_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_1>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER1>;
+			operating-points-v2 = <&cluster1_opp>;
+			sched-energy-costs = <&CPU_COST_A73 &CLUSTER_COST_A73>;
 		};
 
 		cpu7: cpu@103 {
@@ -110,6 +153,160 @@
 			device_type = "cpu";
 			reg = <0x0 0x103>;
 			enable-method = "psci";
+			next-level-cache = <&A73_L2>;
+			cpu-idle-states = <&CPU_SLEEP &CLUSTER_SLEEP_1>;
+			clocks = <&stub_clock HI3670_CLK_STUB_CLUSTER1>;
+			operating-points-v2 = <&cluster1_opp>;
+			sched-energy-costs = <&CPU_COST_A73 &CLUSTER_COST_A73>;
+		};
+
+		idle-states {
+			entry-method = "psci";
+
+			CPU_SLEEP: cpu-sleep {
+				compatible = "arm,idle-state";
+				local-timer-stop;
+				arm,psci-suspend-param = <0x0010000>;
+				entry-latency-us = <40>;
+				exit-latency-us = <70>;
+				min-residency-us = <3000>;
+			};
+
+			CLUSTER_SLEEP_0: cluster-sleep-0 {
+				compatible = "arm,idle-state";
+				local-timer-stop;
+				arm,psci-suspend-param = <0x1010000>;
+				entry-latency-us = <500>;
+				exit-latency-us = <5000>;
+				min-residency-us = <10000>;
+			};
+
+			CLUSTER_SLEEP_1: cluster-sleep-1 {
+				compatible = "arm,idle-state";
+				local-timer-stop;
+				arm,psci-suspend-param = <0x1010000>;
+				entry-latency-us = <1000>;
+				exit-latency-us = <5000>;
+				min-residency-us = <10000>;
+			};
+		};
+
+		A53_L2: l2-cache0 {
+			compatible = "cache";
+		};
+
+		A73_L2: l2-cache1 {
+			compatible = "cache";
+		};
+
+		/include/ "hi3670-sched-energy.dtsi"
+	};
+
+	cluster0_opp: opp_table0 {
+		compatible = "operating-points-v2";
+		opp-shared;
+
+		opp00 {
+			opp-hz = /bits/ 64 <509000000>;
+			opp-microvolt = <680000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp01 {
+			opp-hz = /bits/ 64 <1018000000>;
+			opp-microvolt = <754000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp02 {
+			opp-hz = /bits/ 64 <1210000000>;
+			opp-microvolt = <850000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp03 {
+			opp-hz = /bits/ 64 <1402000000>;
+			opp-microvolt = <850000>;
+			clock-latency-ns = <300000>;
+			opp-suspend;
+		};
+
+		opp04 {
+			opp-hz = /bits/ 64 <1556000000>;
+			opp-microvolt = <950000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp05 {
+			opp-hz = /bits/ 64 <1690000000>;
+			opp-microvolt = <950000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp06 {
+			opp-hz = /bits/ 64 <1844000000>;
+			opp-microvolt = <1050000>;
+			clock-latency-ns = <300000>;
+		};
+	};
+
+	cluster1_opp: opp_table1 {
+		compatible = "operating-points-v2";
+		opp-shared;
+
+		opp10 {
+			opp-hz = /bits/ 64 <682000000>;
+			opp-microvolt = <680000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp11 {
+			opp-hz = /bits/ 64 <1018000000>;
+			opp-microvolt = <780000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp12 {
+			opp-hz = /bits/ 64 <1210000000>;
+			opp-microvolt = <780000>;
+			clock-latency-ns = <2000000>;
+		};
+
+		opp13 {
+			opp-hz = /bits/ 64 <1364000000>;
+			opp-microvolt = <780000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp14 {
+			opp-hz = /bits/ 64 <1498000000>;
+			opp-microvolt = <900000>;
+			clock-latency-ns = <300000>;
+			opp-suspend;
+		};
+
+		opp15 {
+			opp-hz = /bits/ 64 <1652000000>;
+			opp-microvolt = <900000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp16 {
+			opp-hz = /bits/ 64 <1863000000>;
+			opp-microvolt = <900000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp17 {
+			opp-hz = /bits/ 64 <2093000000>;
+			opp-microvolt = <950000>;
+			clock-latency-ns = <300000>;
+		};
+
+		opp18 {
+			opp-hz = /bits/ 64 <2362000000>;
+			opp-microvolt = <1050000>;
+			clock-latency-ns = <300000>;
 		};
 	};
 
