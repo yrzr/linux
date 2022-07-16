@@ -207,6 +207,13 @@
 			#reset-cells = <2>;
 		};
 
+		stub_clock: stub_clock {
+			compatible = "hisilicon,hi3670-stub-clk";
+			reg = <0x0 0xe896b500 0x0 0x0100>,
+			      <0x0 0xfff31000 0x0 0x1000>;
+			#clock-cells = <1>;
+		};
+
 		uart0: serial@fdf02000 {
 			compatible = "arm,pl011", "arm,primecell";
 			reg = <0x0 0xfdf02000 0x0 0x1000>;
