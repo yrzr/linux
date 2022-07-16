@@ -921,6 +921,11 @@
 			clock-names = "apb_pclk";
 		};
 
+		its_pcie: interrupt-controller@0xf4000000 {
+			compatible = "arm,gic-v3-its";
+			msi-controller;
+			reg = <0x0 0xf5100000 0x0 0x100000>;
+		};
 		pcie_phy: pcie-phy@fc000000 {
 			compatible = "hisilicon,hi970-pcie-phy";
 			reg = <0x0 0xfc000000 0x0 0x80000>;
