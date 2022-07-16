@@ -74,3 +74,11 @@ config STUB_CLK_HI3660
 	default COMMON_CLK_HI3660
 	help
 	  Build the Hisilicon Hi3660 stub clock driver.
+
+config STUB_CLK_HI3670
+	bool "Hi3670 Stub Clock Driver" if EXPERT
+	depends on (COMMON_CLK_HI3670 || COMPILE_TEST)
+	depends on MAILBOX
+	default COMMON_CLK_HI3670
+	help
+	  Build the Hisilicon Hi3670 stub clock driver.
