@@ -9,6 +9,7 @@
 #include <dt-bindings/interrupt-controller/arm-gic.h>
 #include <dt-bindings/clock/hi3670-clock.h>
 #include <dt-bindings/usb/pd.h>
+#include <dt-bindings/thermal/thermal.h>
 
 / {
 	compatible = "hisilicon,hi3670";
@@ -489,6 +490,56 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&uart6_pmx_func &uart6_cfg_func>;
 			status = "disabled";
+		};
+
+		tsensor: tsensor {
+			compatible = "hisilicon,kirin970-tsensor";
+			reg = <0x0 0xfff30000 0x0 0x1000>;
+			interrupts = <GIC_SPI 145 IRQ_TYPE_LEVEL_HIGH>;
+			#thermal-sensor-cells = <1>;
+		};
+
+		thermal-zones {
+
+			cls0: cls0 {
+				polling-delay = <1000>;
+				polling-delay-passive = <25>;
+				sustainable-power = <4000>;
+
+				thermal-sensors = <&tsensor 1>;
+
+				trips {
+					threshold: trip-point@0 {
+						temperature = <65000>;
+						hysteresis = <1000>;
+						type = "passive";
+					};
+
+					target: trip-point@1 {
+						temperature = <85000>;
+						hysteresis = <1000>;
+						type = "passive";
+					};
+				};
+
+				cooling-maps {
+					map0 {
+						trip = <&target>;
+						contribution = <1024>;
+						cooling-device = <&cpu0 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+					};
+					map1 {
+						trip = <&target>;
+						contribution = <512>;
+						cooling-device = <&cpu4 THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+					};
+					// map2 {
+					// 	trip = <&target>;
+					// 	contribution = <1024>;
+					// 	cooling-device = <&gpu THERMAL_NO_LIMIT THERMAL_NO_LIMIT>;
+					// };
+				};
+			};
 		};
 
 		gpio0: gpio@e8a0b000 {
