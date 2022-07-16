@@ -38,6 +38,13 @@
 #define HI3660_INT_EN(chan)		(HI3660_OFFSET(chan) + 0x2C)
 #define HI3660_INT_CLR(chan)		(HI3660_OFFSET(chan) + 0x30)
 
+#define HI3670_OFFSET(chan)		((chan) * 0x100)
+#define HI3670_TEMP(chan)		(HI3670_OFFSET(chan) + 0x1C)
+#define HI3670_TH(chan)		(HI3670_OFFSET(chan) + 0x20)
+#define HI3670_LAG(chan)		(HI3670_OFFSET(chan) + 0x28)
+#define HI3670_INT_CLR(chan)		(HI3670_OFFSET(chan) + 0x30)
+#define HI3670_INT_EN(chan)		(HI3670_OFFSET(chan) + 0x64)
+
 #define HI6220_TEMP_BASE			(-60000)
 #define HI6220_TEMP_RESET			(100000)
 #define HI6220_TEMP_STEP			(785)
@@ -47,11 +54,18 @@
 #define HI3660_TEMP_STEP		(205)
 #define HI3660_TEMP_LAG			(4000)
 
+#define HI3670_TEMP_BASE		(-73720)
+#define HI3670_TEMP_STEP		(216)
+#define HI3670_TEMP_LAG			(4000)
+
 #define HI6220_CLUSTER0_SENSOR		2
 #define HI6220_CLUSTER1_SENSOR		1
 
-#define HI3660_LITTLE_SENSOR		0
+#define HI3660_LITTLE_SENSOR	0
 #define HI3660_BIG_SENSOR		1
+#define HI3670_LITTLE_SENSOR	0
+#define HI3670_BIG_SENSOR		1
+
 #define HI3660_G3D_SENSOR		2
 #define HI3660_MODEM_SENSOR		3
 
@@ -128,6 +142,23 @@ static inline int hi3660_thermal_temp_to_step(int temp)
 	return DIV_ROUND_UP(temp - HI3660_TEMP_BASE, HI3660_TEMP_STEP);
 }
 
+/*
+ * for hi3670,
+ *	Step: 198/920 (0.216)
+ *	Temperature base: -73.172°C
+ *
+ * The register is programmed in temperature steps, every step is 216
+ * millidegree and begins at -73 172 m°C
+ */
+static inline int hi3670_thermal_step_to_temp(int step)
+{
+	return HI3670_TEMP_BASE + step * HI3670_TEMP_STEP;
+}
+
+static inline int hi3670_thermal_temp_to_step(int temp)
+{
+	return DIV_ROUND_UP(temp - HI3670_TEMP_BASE, HI3670_TEMP_STEP);
+}
 /*
  * The lag register contains 5 bits encoding the temperature in steps.
  *
@@ -240,6 +271,46 @@ static inline int hi3660_thermal_get_temperature(void __iomem *addr, int id)
 	return hi3660_thermal_step_to_temp(readl(addr + HI3660_TEMP(id)));
 }
 
+
+/*
+ * [0:6] lag register
+ *
+ * The temperature is coded in steps, cf. HI3670_TEMP_STEP.
+ *
+ * Min : 0x00 :  0.0 °C
+ * Max : 0x7F : 27.4 °C
+ *
+ */
+static inline void hi3670_thermal_set_lag(void __iomem *addr,
+					  int id, int value)
+{
+	writel(DIV_ROUND_UP(value, HI3670_TEMP_STEP) & 0x7F,
+			addr + HI3670_LAG(id));
+}
+
+static inline void hi3670_thermal_alarm_clear(void __iomem *addr,
+					      int id, int value)
+{
+	writel(value, addr + HI3670_INT_CLR(id));
+}
+
+static inline void hi3670_thermal_alarm_enable(void __iomem *addr,
+					       int id, int value)
+{
+	writel(value, addr + HI3670_INT_EN(id));
+}
+
+static inline void hi3670_thermal_alarm_set(void __iomem *addr,
+					    int id, int value)
+{
+	writel(value, addr + HI3670_TH(id));
+}
+
+static inline int hi3670_thermal_get_temperature(void __iomem *addr, int id)
+{
+	return hi3670_thermal_step_to_temp(readl(addr + HI3670_TEMP(id)));
+}
+
 /*
  * Temperature configuration register - Sensor selection
  *
@@ -288,6 +359,14 @@ static int hi3660_thermal_irq_handler(struct hisi_thermal_sensor *sensor)
 	return 0;
 }
 
+static int hi3670_thermal_irq_handler(struct hisi_thermal_sensor *sensor)
+{
+	struct hisi_thermal_data *data = sensor->data;
+
+	hi3670_thermal_alarm_clear(data->regs, sensor->id, 1);
+	return 0;
+}
+
 static int hi6220_thermal_get_temp(struct hisi_thermal_sensor *sensor)
 {
 	struct hisi_thermal_data *data = sensor->data;
@@ -300,6 +379,13 @@ static int hi3660_thermal_get_temp(struct hisi_thermal_sensor *sensor)
 	struct hisi_thermal_data *data = sensor->data;
 
 	return hi3660_thermal_get_temperature(data->regs, sensor->id);
+}
+
+static int hi3670_thermal_get_temp(struct hisi_thermal_sensor *sensor)
+{
+	struct hisi_thermal_data *data = sensor->data;
+
+	return hi3670_thermal_get_temperature(data->regs, sensor->id);
 }
 
 static int hi6220_thermal_disable_sensor(struct hisi_thermal_sensor *sensor)
@@ -322,6 +408,15 @@ static int hi3660_thermal_disable_sensor(struct hisi_thermal_sensor *sensor)
 
 	/* disable sensor module */
 	hi3660_thermal_alarm_enable(data->regs, sensor->id, 0);
+	return 0;
+}
+
+static int hi3670_thermal_disable_sensor(struct hisi_thermal_sensor *sensor)
+{
+	struct hisi_thermal_data *data = sensor->data;
+
+	/* disable sensor module */
+	hi3670_thermal_alarm_enable(data->regs, sensor->id, 0);
 	return 0;
 }
 
@@ -385,6 +480,28 @@ static int hi3660_thermal_enable_sensor(struct hisi_thermal_sensor *sensor)
 	return 0;
 }
 
+static int hi3670_thermal_enable_sensor(struct hisi_thermal_sensor *sensor)
+{
+	unsigned int value;
+	struct hisi_thermal_data *data = sensor->data;
+
+	/* disable interrupt */
+	hi3670_thermal_alarm_enable(data->regs, sensor->id, 0);
+
+	/* setting lag value between current temp and the threshold */
+	hi3670_thermal_set_lag(data->regs, sensor->id, HI3670_TEMP_LAG);
+
+	/* set interrupt threshold */
+	value = hi3670_thermal_temp_to_step(sensor->thres_temp);
+	hi3670_thermal_alarm_set(data->regs, sensor->id, value);
+
+	/* enable interrupt */
+	hi3670_thermal_alarm_clear(data->regs, sensor->id, 1);
+	hi3670_thermal_alarm_enable(data->regs, sensor->id, 1);
+
+	return 0;
+}
+
 static int hi6220_thermal_probe(struct hisi_thermal_data *data)
 {
 	struct platform_device *pdev = data->pdev;
@@ -426,6 +543,29 @@ static int hi3660_thermal_probe(struct hisi_thermal_data *data)
 	data->sensor[0].id = HI3660_BIG_SENSOR;
 	data->sensor[0].irq_name = "tsensor_a73";
 	data->sensor[0].data = data;
+
+	return 0;
+}
+
+static int hi3670_thermal_probe(struct hisi_thermal_data *data)
+{
+	struct platform_device *pdev = data->pdev;
+	struct device *dev = &pdev->dev;
+
+	data->nr_sensors = 1;
+
+	data->sensor = devm_kzalloc(dev, sizeof(*data->sensor) *
+				    data->nr_sensors, GFP_KERNEL);
+	if (!data->sensor)
+		return -ENOMEM;
+
+	data->sensor[0].id = HI3670_BIG_SENSOR;
+	data->sensor[0].irq_name = "tsensor_a73";
+	data->sensor[0].data = data;
+
+	data->sensor[1].id = HI3670_LITTLE_SENSOR;
+	data->sensor[1].irq_name = "tsensor_a53";
+	data->sensor[1].data = data;
 
 	return 0;
 }
@@ -519,6 +659,14 @@ static const struct hisi_thermal_ops hi3660_ops = {
 	.probe		= hi3660_thermal_probe,
 };
 
+static const struct hisi_thermal_ops hi3670_ops = {
+	.get_temp	= hi3670_thermal_get_temp,
+	.enable_sensor	= hi3670_thermal_enable_sensor,
+	.disable_sensor	= hi3670_thermal_disable_sensor,
+	.irq_handler	= hi3670_thermal_irq_handler,
+	.probe		= hi3670_thermal_probe,
+};
+
 static const struct of_device_id of_hisi_thermal_match[] = {
 	{
 		.compatible = "hisilicon,tsensor",
@@ -527,6 +675,10 @@ static const struct of_device_id of_hisi_thermal_match[] = {
 	{
 		.compatible = "hisilicon,hi3660-tsensor",
 		.data = &hi3660_ops,
+	},
+	{
+		.compatible = "hisilicon,hi3670-tsensor",
+		.data = &hi3670_ops,
 	},
 	{ /* end */ }
 };
