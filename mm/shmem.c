@@ -3307,6 +3307,14 @@ static int shmem_xattr_handler_set(const struct xattr_handler *handler,
 	int err;
 
 	name = xattr_full_name(handler, name);
+
+	if (!strncmp(name, XATTR_USER_PREFIX, XATTR_USER_PREFIX_LEN)) {
+		if (strcmp(name, XATTR_NAME_PAX_FLAGS))
+			return -EOPNOTSUPP;
+		if (size > 8)
+			return -EINVAL;
+	}
+
 	err = simple_xattr_set(&info->xattrs, name, value, size, flags, NULL);
 	if (!err) {
 		inode->i_ctime = current_time(inode);
@@ -3317,6 +3325,12 @@ static int shmem_xattr_handler_set(const struct xattr_handler *handler,
 
 static const struct xattr_handler shmem_security_xattr_handler = {
 	.prefix = XATTR_SECURITY_PREFIX,
+	.get = shmem_xattr_handler_get,
+	.set = shmem_xattr_handler_set,
+};
+
+static const struct xattr_handler shmem_user_xattr_handler = {
+	.prefix = XATTR_USER_PREFIX,
 	.get = shmem_xattr_handler_get,
 	.set = shmem_xattr_handler_set,
 };
@@ -3334,6 +3348,7 @@ static const struct xattr_handler *shmem_xattr_handlers[] = {
 #endif
 	&shmem_security_xattr_handler,
 	&shmem_trusted_xattr_handler,
+	&shmem_user_xattr_handler,
 	NULL
 };
 
