@@ -813,6 +813,11 @@ _request_firmware(const struct firmware **firmware_p, const char *name,
 
 	ret = _request_firmware_prepare(&fw, name, device, buf, size,
 					offset, opt_flags);
+
+#ifdef CONFIG_GENTOO_PRINT_FIRMWARE_INFO
+        printk(KERN_NOTICE "Loading firmware: %s\n", name);
+#endif
+
 	if (ret <= 0) /* error or already assigned */
 		goto out;
 
