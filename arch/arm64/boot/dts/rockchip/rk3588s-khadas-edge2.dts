@@ -77,6 +77,15 @@
 		};
 	};
 
+	bluetooth-rfkill {
+		compatible = "rfkill-gpio";
+		label = "rfkill-bluetooth";
+		radio-type = "bluetooth";
+		shutdown-gpios = <&gpio0 RK_PD4 GPIO_ACTIVE_LOW>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&bt_reset_pin>;
+	};
+
 	vcc5v0_sys: vcc5v0-sys-regulator {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc5v0_sys";
