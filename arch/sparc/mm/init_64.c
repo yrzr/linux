@@ -3080,11 +3080,11 @@ static inline resource_size_t compute_kern_paddr(void *addr)
 static void __init kernel_lds_init(void)
 {
 	code_resource.start = compute_kern_paddr(_text);
-	code_resource.end   = compute_kern_paddr(_etext - 1);
+	code_resource.end   = compute_kern_paddr(_etext) - 1;
 	data_resource.start = compute_kern_paddr(_etext);
-	data_resource.end   = compute_kern_paddr(_edata - 1);
+	data_resource.end   = compute_kern_paddr(_edata) - 1;
 	bss_resource.start  = compute_kern_paddr(__bss_start);
-	bss_resource.end    = compute_kern_paddr(_end - 1);
+	bss_resource.end    = compute_kern_paddr(_end) - 1;
 }
 
 static int __init report_memory(void)

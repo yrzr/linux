@@ -2730,10 +2730,16 @@ SYSCALL_DEFINE5(prctl, int, option, unsigned long, arg2, unsigned long, arg3,
 		break;
 #endif
 	case PR_SET_MDWE:
-		error = prctl_set_mdwe(arg2, arg3, arg4, arg5);
+		if (IS_ENABLED(CONFIG_PARISC))
+			error = -EINVAL;
+		else
+			error = prctl_set_mdwe(arg2, arg3, arg4, arg5);
 		break;
 	case PR_GET_MDWE:
-		error = prctl_get_mdwe(arg2, arg3, arg4, arg5);
+		if (IS_ENABLED(CONFIG_PARISC))
+			error = -EINVAL;
+		else
+			error = prctl_get_mdwe(arg2, arg3, arg4, arg5);
 		break;
 	case PR_PPC_GET_DEXCR:
 		if (arg3 || arg4 || arg5)
