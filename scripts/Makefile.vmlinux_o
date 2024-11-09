@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: GPL-2.0-only
 
 PHONY := __default
-__default: vmlinux.o modules.builtin.modinfo modules.builtin
+__default: vmlinux.o modules.builtin.modinfo modules.builtin modules.builtin.objs
 
 include include/config/auto.conf
 include $(srctree)/scripts/Kbuild.include
@@ -27,6 +27,20 @@ ifdef CONFIG_LTO_CLANG
 initcalls-lds := .tmp_initcalls.lds
 endif
 
+# Generate a linker script to delete CTF sections
+# -----------------------------------------------
+
+quiet_cmd_gen_remove_ctf.lds = GEN     $@
+      cmd_gen_remove_ctf.lds = \
+	$(LD) $(KBUILD_LDFLAGS) -r --verbose | awk -f $(real-prereqs) > $@
+
+.tmp_remove-ctf.lds: $(srctree)/scripts/remove-ctf-lds.awk FORCE
+	$(call if_changed,gen_remove_ctf.lds)
+
+ifdef CONFIG_CTF
+targets := .tmp_remove-ctf.lds
+endif
+
 # objtool for vmlinux.o
 # ---------------------------------------------------------------------------
 #
@@ -42,13 +56,26 @@ vmlinux-objtool-args-$(CONFIG_NOINSTR_VALIDATION)	+= --noinstr \
 
 objtool-args = $(vmlinux-objtool-args-y) --link
 
-# Link of vmlinux.o used for section mismatch analysis
+# Link of vmlinux.o used for section mismatch analysis: we also strip the CTF
+# section out at this stage, since ctfarchive gets it from the underlying object
+# files and linking it further is a waste of time.
 # ---------------------------------------------------------------------------
+
+vmlinux-o-ld-args-$(CONFIG_BUILTIN_MODULE_RANGES)	+= -Map=$@.map
+
+ifdef CONFIG_CTF
+ctf_strip_script_arg = -T .tmp_remove-ctf.lds
+ctf_target = .tmp_remove-ctf.lds
+else
+ctf_strip_script_arg =
+ctf_target =
+endif
 
 quiet_cmd_ld_vmlinux.o = LD      $@
       cmd_ld_vmlinux.o = \
 	$(LD) ${KBUILD_LDFLAGS} -r -o $@ \
-	$(addprefix -T , $(initcalls-lds)) \
+	$(vmlinux-o-ld-args-y) \
+	$(addprefix -T , $(initcalls-lds)) $(ctf_strip_script_arg) \
 	--whole-archive vmlinux.a --no-whole-archive \
 	--start-group $(KBUILD_VMLINUX_LIBS) --end-group \
 	$(cmd_objtool)
@@ -58,7 +85,7 @@ define rule_ld_vmlinux.o
 	$(call cmd,gen_objtooldep)
 endef
 
-vmlinux.o: $(initcalls-lds) vmlinux.a $(KBUILD_VMLINUX_LIBS) FORCE
+vmlinux.o: $(initcalls-lds) vmlinux.a $(KBUILD_VMLINUX_LIBS) $(ctf_target) FORCE
 	$(call if_changed_rule,ld_vmlinux.o)
 
 targets += vmlinux.o
@@ -87,7 +114,20 @@ targets += modules.builtin
 modules.builtin: modules.builtin.modinfo FORCE
 	$(call if_changed,modules_builtin)
 
-# Add FORCE to the prerequisites of a target to force it to be always rebuilt.
+# module.builtin.objs
+# ---------------------------------------------------------------------------
+quiet_cmd_modules_builtin_objs = GEN     $@
+      cmd_modules_builtin_objs = \
+	tr '\0' '\n' < $< | \
+	sed -n 's/^[[:alnum:]:_]*\.objs=//p' | \
+	tr ' ' '\n' | uniq | sed -e 's|:|: |' -e 's:|: :g' | \
+	tr -s ' ' > $@
+
+targets += modules.builtin.objs
+modules.builtin.objs: modules.builtin.modinfo FORCE
+	$(call if_changed,modules_builtin_objs)
+
+# Add FORCE to the prequisites of a target to force it to be always rebuilt.
 # ---------------------------------------------------------------------------
 
 PHONY += FORCE
